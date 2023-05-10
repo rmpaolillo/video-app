@@ -1,4 +1,4 @@
-<div x-data="$store.status" class="bg-gray-400">
+<div x-data="$store.status" class="bg-gray-200">
     <div class="p-2" >
         <template x-for="(single,index) in $store.status.videos">
             <div>
@@ -9,12 +9,13 @@
             </div>
         </template>
     </div>
-    <div class="container min-h-screen min-w-max" x-data>
-        <div class="video-container">
+    <div class="container min-h-screen min-w-max" x-data x-on:keyup.document="keyboardShortcuts($event)">
+        <div class="video-container" x-ref="videoContainer" x-on:fullscreenchange="updateFullscreenButton()">
         <span x-effect="$el.textContent = isPlaying"></span>
         <span x-effect="$el.textContent = timeElapsed"></span>
         <span x-effect="$el.textContent = initializeVideo()"></span>
         <span x-effect="$el.textContent = percentElapsed"></span>
+        <span x-effect="$el.textContent = $store.status.fullScreen"></span>
             <div class="playback-animation" x-ref="playbackAnimation">
                 <svg class="playback-icons">
                     <use :class="isPlaying ? '' : 'hidden'" href="#play-icon"></use>
@@ -22,7 +23,7 @@
                 </svg>
             </div>
 
-            <video x-on:loadedmetadata="initializeVideo()" x-on:mouseenter="showControls()" x-on:mouseleave="hideControls()" x-on:click="togglePlay(), animatePlayback()" x-on:timeupdate="updateTimeElapsed(), updateProgress(), updatePercentElapsed()" x-bind:control="$store.status.videoWorks ? 'controls' : ''" class="video" x-ref="video" preload="metadata" poster="video/poster.jpg">
+            <video x-on:volumechange="updateVolumeIcon()" x-on:loadedmetadata="initializeVideo()" x-on:mouseenter="showControls()" x-on:mouseleave="hideControls()" x-on:click="togglePlay(), animatePlayback()" x-on:timeupdate="updateTimeElapsed(), updateProgress(), updatePercentElapsed()" x-bind:control="$store.status.videoWorks ? 'controls' : ''" class="video" x-ref="video" preload="metadata" poster="video/poster.jpg">
                 <source src="video/video.mp4" type="video/mp4">
                 </source>
             </video>
@@ -44,16 +45,16 @@
                         </button>
 
                         <div class="volume-controls">
-                            <button data-title="Mute (m)" class="volume-button" id="volume-button">
-                                <svg>
-                                    <use class="hidden" href="#volume-mute"></use>
-                                    <use class="hidden" href="#volume-low"></use>
-                                    <use href="#volume-high"></use>
+                            <button x-on:click="toggleMute()" :data-title="$store.status.mute ? 'Unmute (m)' : 'Mute (m)'" class="volume-button" id="volume-button" x-refs="volumeButton">
+                                <svg x-ref="volumeIcons" id="volume-icons">
+                                    <use x-ref="volumeMute" class="hidden" href="#volume-mute"></use>
+                                    <use x-ref="volumeLow" class="hidden" href="#volume-low"></use>
+                                    <use x-ref="volumeHigh" href="#volume-high"></use>
                                 </svg>
                             </button>
 
-                            <input class="volume" id="volume" value="1" data-mute="0.5" type="range"
-                                max="1" min="0" step="0.01">
+                            <input x-on:input="updateVolume()"  class="volume" id="volume" value="1" data-mute="0.5" type="range"
+                                max="1" min="0" step="0.01" x-ref="volume">
                         </div>
 
                         <div class="time">
@@ -69,7 +70,7 @@
                                 <use href="#pip"></use>
                             </svg>
                         </button>
-                        <button data-title="Full screen (f)" class="fullscreen-button" id="fullscreen-button">
+                        <button x-on:click="toggleFullScreen()" :data-title="$store.status.fullScreen ? 'Esci da modalità Full Screen' : 'Vai in modalità Full screen (f)'" class="fullscreen-button" id="fullscreen-button" x-ref="fullscreenButton">
                             <svg>
                                 <use href="#fullscreen"></use>
                                 <use href="#fullscreen-exit" class="hidden"></use>
