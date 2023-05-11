@@ -1,5 +1,5 @@
 <div x-data="$store.status" class="bg-gray-200">
-    <div class="p-2" >
+    <div class="p-2">
         <template x-for="(single,index) in $store.status.videos">
             <div>
                 <button class="px-4 py-2 text-white bg-gray-600 rounded-md hover:bg-gray-500"
@@ -10,12 +10,26 @@
         </template>
     </div>
     <div class="container min-h-screen min-w-max" x-data x-on:keyup.document="keyboardShortcuts($event)">
+
+        <div>
+            is playing: <span class="font-bold text-red-600" x-effect="$el.textContent = isPlaying"></span><br />
+            time elapsed: <span class="font-bold text-red-600" x-effect="$el.textContent = timeElapsed"></span><br />
+            initialize video: <span class="font-bold text-red-600"
+                x-effect="$el.textContent = initializeVideo()"></span><br />
+            percent elapsed: <span class="font-bold text-red-600"
+                x-effect="$el.textContent = parseFloat((percentElapsed).toFixed(2)*100)+'%'"></span><br />
+            current time: <span class="font-bold text-red-600" x-effect="$el.textContent = currentTime"></span><br />
+            seek: <span class="font-bold text-red-600" x-effect="$el.textContent = seek"></span><br />
+            progress bar: <span class="font-bold text-red-600" x-effect="$el.textContent = progressBar"></span><br />
+            full screen: <span class="font-bold text-red-600"
+                x-effect="$el.textContent = $store.status.fullScreen"></span>
+        </div>
+        <button class="px-4 py-2 text-white bg-violet-500" x-on:click="setCurTime()">set current time</button>
+        {{-- <video controls class="video" x-ref="video" preload="metadata" poster="video/poster.jpg">
+            <source src="http://custom-html5-video.surge.sh/video.mp4" type="video/mp4">
+            </source>
+        </video> --}}
         <div class="video-container" x-ref="videoContainer" x-on:fullscreenchange="updateFullscreenButton()">
-        <span x-effect="$el.textContent = isPlaying"></span>
-        <span x-effect="$el.textContent = timeElapsed"></span>
-        <span x-effect="$el.textContent = initializeVideo()"></span>
-        <span x-effect="$el.textContent = percentElapsed"></span>
-        <span x-effect="$el.textContent = $store.status.fullScreen"></span>
             <div class="playback-animation" x-ref="playbackAnimation">
                 <svg class="playback-icons">
                     <use :class="isPlaying ? '' : 'hidden'" href="#play-icon"></use>
@@ -23,21 +37,32 @@
                 </svg>
             </div>
 
-            <video x-on:volumechange="updateVolumeIcon()" x-on:loadedmetadata="initializeVideo()" x-on:mouseenter="showControls()" x-on:mouseleave="hideControls()" x-on:click="togglePlay(), animatePlayback()" x-on:timeupdate="updateTimeElapsed(), updateProgress(), updatePercentElapsed()" x-bind:control="$store.status.videoWorks ? 'controls' : ''" class="video" x-ref="video" preload="metadata" poster="video/poster.jpg">
-                <source src="video/video.mp4" type="video/mp4">
-                </source>
+            <video
+                x-on:volumechange="updateVolumeIcon()"
+                x-on:loadedmetadata="initializeVideo()"
+                x-on:mouseenter="showControls()"
+                x-on:mouseleave="hideControls()"
+                x-on:click="togglePlay(), animatePlayback()"
+                x-on:timeupdate="updateTimeElapsed(), updateProgress(), updatePercentElapsed()"
+                x-bind:control="$store.status.videoWorks ? 'controls' : ''" class="video" x-ref="video"
+                preload="metadata" poster="video/poster.jpg">
+                <source src="http://custom-html5-video.surge.sh/video.mp4" type="video/mp4"></source>
             </video>
 
-            <div x-on:mouseenter="showControls()" x-on:mouseleave="hideControls()" :class="$store.status.videoWorks ? '' : 'hidden'" class="video-controls" x-ref="videoControls">
+            <div x-on:mouseenter="showControls()" x-on:mouseleave="hideControls()"
+                :class="$store.status.videoWorks ? '' : 'hidden'" class="video-controls" x-ref="videoControls">
                 <div class="video-progress">
-                    <progress x-ref="progressBar"  min="0" max="$store.status.videoDuration" value="0"></progress>
-                    <input x-on:input="skipAhead" x-on:mousemove="updateSeekTooltip"  class="seek" x-ref="seek" min="0" max="$store.status.videoDuration" type="range" step="1" value="0">
+                    <progress x-ref="progressBar" min="0" max="$store.status.videoDuration"
+                        value="0"></progress>
+                    <input x-on:input="skipAhead($event)" x-on:mousemove="updateSeekTooltip" class="seek" x-ref="seek"
+                        min="0" max="$store.status.videoDuration" type="range" step="1" value="0">
                     <div class="seek-tooltip" id="seekTooltip" x-effect="$el.textContent = seekTooltip">00:00</div>
                 </div>
 
                 <div class="bottom-controls">
                     <div class="left-controls">
-                        <button :data-title="isPlaying ? 'Pausa (k)' : 'Play (k)'" x-ref="play" x-on:click="togglePlay()">
+                        <button :data-title="isPlaying ? 'Pausa (k)' : 'Play (k)'" x-ref="play"
+                            x-on:click="togglePlay()">
                             <svg class="playback-icons">
                                 <use :class="isPlaying ? 'hidden' : ''" href="#play-icon"></use>
                                 <use :class="isPlaying ? '' : 'hidden'" href="#pause"></use>
@@ -45,7 +70,9 @@
                         </button>
 
                         <div class="volume-controls">
-                            <button x-on:click="toggleMute()" :data-title="$store.status.mute ? 'Unmute (m)' : 'Mute (m)'" class="volume-button" id="volume-button" x-refs="volumeButton">
+                            <button x-on:click="toggleMute()"
+                                :data-title="$store.status.mute ? 'Unmute (m)' : 'Mute (m)'" class="volume-button"
+                                id="volume-button" x-refs="volumeButton">
                                 <svg x-ref="volumeIcons" id="volume-icons">
                                     <use x-ref="volumeMute" class="hidden" href="#volume-mute"></use>
                                     <use x-ref="volumeLow" class="hidden" href="#volume-low"></use>
@@ -53,8 +80,9 @@
                                 </svg>
                             </button>
 
-                            <input x-on:input="updateVolume()"  class="volume" id="volume" value="1" data-mute="0.5" type="range"
-                                max="1" min="0" step="0.01" x-ref="volume">
+                            <input x-on:input="updateVolume()" class="volume" id="volume" value="1"
+                                data-mute="0.5" type="range" max="1" min="0" step="0.01"
+                                x-ref="volume">
                         </div>
 
                         <div class="time">
@@ -70,7 +98,10 @@
                                 <use href="#pip"></use>
                             </svg>
                         </button>
-                        <button x-on:click="toggleFullScreen()" :data-title="$store.status.fullScreen ? 'Esci da modalità Full Screen' : 'Vai in modalità Full screen (f)'" class="fullscreen-button" id="fullscreen-button" x-ref="fullscreenButton">
+                        <button x-on:click="toggleFullScreen()"
+                            :data-title="$store.status.fullScreen ? 'Esci da modalità Full Screen' :
+                                'Vai in modalità Full screen (f)'"
+                            class="fullscreen-button" id="fullscreen-button" x-ref="fullscreenButton">
                             <svg>
                                 <use href="#fullscreen"></use>
                                 <use href="#fullscreen-exit" class="hidden"></use>

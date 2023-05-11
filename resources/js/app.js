@@ -13,9 +13,11 @@ Alpine.store('status', {
     isPlaying: false,
     videoDuration: null,
     timeElapsed: null,
+    currentTime: 10,
     percentElapsed: 0,
     seek: 0,
     progressBar: 0,
+    completedTime: Alpine.$persist(0).as('completed'),
     seekTooltip: null,
     mute: false,
     fullScreen: false,
@@ -25,9 +27,14 @@ Alpine.store('status', {
         { baz: 'tre'}
     ]).as('contatore'),
     changeMe(index,prop,value) {
-        console.log(this.videos[index][prop])
-        console.log(value)
         this.videos[index][prop] = value + ' rigo ' + Math.floor(Math.random() * 10)
+    },
+    getCurTime() {
+        alert(this.$refs.video.currentTime)
+    },
+    setCurTime(arg) {
+        this.currentTime = arg
+        this.$refs.video.currentTime = this.currentTime
     },
     togglePlay() {
         if (this.$refs.video.paused || this.$refs.video.ended) {
@@ -44,8 +51,8 @@ Alpine.store('status', {
           minutes: result.substr(3, 2),
           seconds: result.substr(6, 2)
         }
-      },
-      initializeVideo() {
+    },
+    initializeVideo() {
         const videoDuration = Math.round(this.$refs.video.duration)
         this.$refs.seek.setAttribute('max', videoDuration)
         this.$refs.progressBar.setAttribute('max', videoDuration)
@@ -56,10 +63,14 @@ Alpine.store('status', {
       },
       updateTimeElapsed() {
         const time = this.formatTime(Math.round(this.$refs.video.currentTime))
+        this.currentTime = this.$refs.video.currentTime
+        if (this.$refs.video.currentTime > this.completedTime) {
+            this.completedTime = this.$refs.video.currentTime
+        }
         this.$refs.timeElapsed.innerText = `${time.minutes}:${time.seconds}`
         this.$refs.timeElapsed.setAttribute('datetime', `${time.minutes}m ${time.seconds}s`)
         this.timeElapsed = `${time.minutes}:${time.seconds}`
-        return `${time.minutes}:${time.seconds}`
+        // return `${time.minutes}:${time.seconds}`
       },
       updatePercentElapsed() {
         const videoDuration = Math.round(this.$refs.video.duration)
@@ -70,6 +81,9 @@ Alpine.store('status', {
       updateProgress() {
         this.$refs.progressBar.value = Math.floor(this.$refs.video.currentTime)
         this.$refs.seek.value = Math.floor(this.$refs.video.currentTime)
+        this.progressBar = this.$refs.video.currentTime
+        this.seek = this.$refs.video.currentTime
+        this.currentTime = this.$refs.video.currentTime
       },
       updateSeekTooltip(event) {
         const skipTo = Math.round((event.offsetX / event.target.clientWidth) * parseInt(event.target.getAttribute('max'), 10))
@@ -83,10 +97,16 @@ Alpine.store('status', {
       // the progress bar is clicked
       skipAhead(event) {
         const skipTo = event.target.dataset.seek ? event.target.dataset.seek : event.target.value
-        console.log(skipTo)
-        this.currentTime = skipTo
-        this.progressBar = skipTo
-        this.seek = skipTo
+        if (skipTo > this.completedTime) {
+            console.log(skipTo)
+            this.setCurTime(this.completedTime)
+        } else {
+            this.setCurTime(skipTo)
+        }
+        // this.setCurTime(skipTo)
+        // this.currentTime = skipTo
+        // this.progressBar = skipTo
+        // this.seek = skipTo
       },
       animatePlayback() {
         this.$refs.playbackAnimation.animate([
@@ -161,13 +181,10 @@ Alpine.store('status', {
       },
       updateFullscreenButton() {
         fullscreenIcons.forEach(icon => icon.classList.toggle('hidden'))
-        console.log(document.fullscreenElement)
         if (document.fullscreenElement) {
           this.$refs.fullscreenButton.setAttribute('data-title', 'Exit full screen (f)')
-          console.log('Exit full screen (f)')
         } else {
           this.$refs.fullscreenButton.setAttribute('data-title', 'Full screen (f)')
-          console.log('Full screen (f)')
         }
       },
       keyboardShortcuts(event) {
@@ -195,7 +212,6 @@ Alpine.store('status', {
       test() {
         this.$nextTick(() => {
             this.target = document.querySelectorAll('use')
-            console.log(this.target)
         })
       }
 })
