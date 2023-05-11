@@ -1,5 +1,5 @@
 import './bootstrap'
-import './video'
+// import './video'
 
 import Alpine from 'alpinejs'
 import persist from '@alpinejs/persist'
