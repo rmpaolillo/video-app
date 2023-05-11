@@ -14,6 +14,7 @@
         <div>
             is playing: <span class="font-bold text-red-600" x-effect="$el.textContent = isPlaying"></span><br />
             time elapsed: <span class="font-bold text-red-600" x-effect="$el.textContent = timeElapsed"></span><br />
+            time completed: <span class="font-bold text-red-600" x-effect="$el.textContent = completedTime"></span><br />
             initialize video: <span class="font-bold text-red-600"
                 x-effect="$el.textContent = initializeVideo()"></span><br />
             percent elapsed: <span class="font-bold text-red-600"
@@ -24,7 +25,7 @@
             full screen: <span class="font-bold text-red-600"
                 x-effect="$el.textContent = $store.status.fullScreen"></span>
         </div>
-        <button class="px-4 py-2 text-white bg-violet-500" x-on:click="setCurTime()">set current time</button>
+        <button class="px-4 py-2 text-white bg-violet-500" x-on:click="setCurTime($store.status.completedTime)">set current time</button>
         {{-- <video controls class="video" x-ref="video" preload="metadata" poster="video/poster.jpg">
             <source src="http://custom-html5-video.surge.sh/video.mp4" type="video/mp4">
             </source>

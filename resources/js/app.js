@@ -100,6 +100,8 @@ Alpine.store('status', {
         if (skipTo > this.completedTime) {
             console.log(skipTo)
             this.setCurTime(this.completedTime)
+            this.$refs.video.pause()
+            alert('Non puoi andare avanti altrimenti ti stronzo')
         } else {
             this.setCurTime(skipTo)
         }
