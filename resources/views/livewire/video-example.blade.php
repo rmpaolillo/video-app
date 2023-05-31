@@ -1,4 +1,4 @@
-<div x-data="$store.status" class="bg-gray-200">
+<div x-data="$store.status" class="bg-gray-200" x-on:click.outside.prevent="console.log('click away')">
     <div class="p-2">
         <template x-for="(single,index) in $store.status.videos">
             <div>
@@ -9,12 +9,12 @@
             </div>
         </template>
     </div>
-    <div class="container min-h-screen min-w-max" x-data x-on:keyup.document="keyboardShortcuts($event)">
+    <div class="container flex flex-col min-h-screen min-w-max" x-data x-on:keyup.document="keyboardShortcuts($event)" >
 
-        <div>
             is playing: <span class="font-bold text-red-600" x-effect="$el.textContent = isPlaying"></span><br />
             time elapsed: <span class="font-bold text-red-600" x-effect="$el.textContent = timeElapsed"></span><br />
-            time completed: <span class="font-bold text-red-600" x-effect="$el.textContent = completedTime"></span><br />
+            time completed: <span class="font-bold text-red-600"
+                x-effect="$el.textContent = completedTime"></span><br />
             initialize video: <span class="font-bold text-red-600"
                 x-effect="$el.textContent = initializeVideo()"></span><br />
             percent elapsed: <span class="font-bold text-red-600"
@@ -24,13 +24,16 @@
             progress bar: <span class="font-bold text-red-600" x-effect="$el.textContent = progressBar"></span><br />
             full screen: <span class="font-bold text-red-600"
                 x-effect="$el.textContent = $store.status.fullScreen"></span>
-        </div>
-        <button class="px-4 py-2 text-white bg-violet-500" x-on:click="setCurTime($store.status.completedTime)">set current time</button>
+
+        <button class="px-4 py-2 text-white bg-violet-500" x-on:click="setCurTime($store.status.completedTime)">set
+            current time</button>
         {{-- <video controls class="video" x-ref="video" preload="metadata" poster="video/poster.jpg">
             <source src="http://custom-html5-video.surge.sh/video.mp4" type="video/mp4">
             </source>
         </video> --}}
-        <div class="video-container" x-ref="videoContainer" x-on:fullscreenchange="updateFullscreenButton()">
+
+        <div class="w-full h-auto max-w-full video-container" x-ref="videoContainer"
+            x-on:fullscreenchange="updateFullscreenButton()">
             <div class="playback-animation" x-ref="playbackAnimation">
                 <svg class="playback-icons">
                     <use :class="isPlaying ? '' : 'hidden'" href="#play-icon"></use>
@@ -38,16 +41,14 @@
                 </svg>
             </div>
 
-            <video
-                x-on:volumechange="updateVolumeIcon()"
-                x-on:loadedmetadata="initializeVideo()"
-                x-on:mouseenter="showControls()"
-                x-on:mouseleave="hideControls()"
+            <video x-on:volumechange="updateVolumeIcon()" x-on:loadedmetadata="initializeVideo()"
+                x-on:mouseenter="showControls()" x-on:mouseleave="hideControls()"
                 x-on:click="togglePlay(), animatePlayback()"
                 x-on:timeupdate="updateTimeElapsed(), updateProgress(), updatePercentElapsed()"
                 x-bind:control="$store.status.videoWorks ? 'controls' : ''" class="video" x-ref="video"
                 preload="metadata" poster="video/poster.jpg">
-                <source src="http://custom-html5-video.surge.sh/video.mp4" type="video/mp4"></source>
+                <source src="http://custom-html5-video.surge.sh/video.mp4" type="video/mp4">
+                </source>
             </video>
 
             <div x-on:mouseenter="showControls()" x-on:mouseleave="hideControls()"
@@ -55,8 +56,9 @@
                 <div class="video-progress">
                     <progress x-ref="progressBar" min="0" max="$store.status.videoDuration"
                         value="0"></progress>
-                    <input x-on:input="skipAhead($event)" x-on:mousemove="updateSeekTooltip" class="seek" x-ref="seek"
-                        min="0" max="$store.status.videoDuration" type="range" step="1" value="0">
+                    <input x-on:input="skipAhead($event)" x-on:mousemove="updateSeekTooltip" class="seek"
+                        x-ref="seek" min="0" max="$store.status.videoDuration" type="range" step="1"
+                        value="0">
                     <div class="seek-tooltip" id="seekTooltip" x-effect="$el.textContent = seekTooltip">00:00</div>
                 </div>
 
