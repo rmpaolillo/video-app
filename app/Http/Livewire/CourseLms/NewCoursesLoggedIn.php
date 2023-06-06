@@ -2,7 +2,6 @@
 
 namespace App\Http\Livewire\CourseLms;
 
-use App\Models\Video;
 use App\Models\Course;
 use Livewire\Component;
 use App\Models\Attendance;
@@ -22,8 +21,11 @@ class NewCoursesLoggedIn extends Component
     public $videos_json;
     public $no_videos;
     public $dateTimeCompleted ='';
-    public $completed =false;
-    public $index =false;
+    public $completed = false;
+    public $index = false;
+    public $compliancePopup = false;
+    public $isPlaying = false;
+
     protected $listeners = ['refreshComponent' => '$refresh'];
 
     public function mount()
@@ -124,6 +126,16 @@ class NewCoursesLoggedIn extends Component
             'videos' => json_encode($videos_array),
             'index' => $this->index
         ]);
+    }
+
+    public function closeCompliance()
+    {
+        $this->compliancePopup = false;
+    }
+
+    public function openCompliance()
+    {
+        $this->compliancePopup = true;
     }
 
     public function render()
