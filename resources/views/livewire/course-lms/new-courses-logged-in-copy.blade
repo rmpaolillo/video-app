@@ -7,14 +7,9 @@
                 </h1>
                 <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-center text-purple-600">
                     {{ $title }}</h2>
-                {{-- <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-center text-gray-500"
-                    x-text="(videos[{{ $index }}].titolo).toUpperCase()"></h3> --}}
-                @foreach (json_decode($videos_json) as $key => $video)
-                    @if ($key == $index)
-                        <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-center text-gray-500">
-                            {{ Str::upper($video->titolo) }}</h3>
-                    @endif
-                @endforeach
+                <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-center text-gray-500"
+                    x-text="(videos[{{ $index }}].titolo).toUpperCase()"></h3>
+                {{ $index }}
                 <div class="w-full p-2 mt-4 bg-green-200 rounded-lg">
                     <div class="flex flex-row items-center text-gray-700">
                         <svg class="w-6 h-6 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -28,57 +23,6 @@
                             risposta.</p>
                     </div>
                 </div>
-                {{-- nav videos blade --}}
-                <nav aria-label="Progress" class="mt-4">
-                    <ol role="list" class="flex items-center">
-                        @foreach (json_decode($videos_json) as $key => $video)
-                            <li class="relative @if ($key != count(json_decode($videos_json)) - 1) pr-8 sm:pr-20 @endif">
-                                <!-- Upcoming Step -->
-                                <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                                    <div
-                                        class="h-0.5 w-full @if ($video->completed == 1) bg-violet-600 @else bg-gray-200 @endif">
-                                    </div>
-                                </div>
-                                <div>
-                                    @if ($video->completed == 1 && $key == $index)
-                                        <a href="#"
-                                            class="relative flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full border-violet-600"
-                                            aria-current="step">
-                                            <span class="h-2.5 w-2.5 rounded-full bg-violet-600"
-                                                aria-hidden="true"></span>
-                                            <span class="sr-only"></span>
-                                        </a>
-                                    @elseif($video->completed == 1 && $key != $index)
-                                        <a href="#"
-                                            class="relative flex items-center justify-center w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-900">
-                                            @if ($key != $index)
-                                                <svg class="w-5 h-5 text-white" viewBox="0 0 20 20" fill="currentColor"
-                                                    aria-hidden="true">
-                                                    <path fill-rule="evenodd"
-                                                        d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                            @endif
-                                    @endif
-                                    <span class="sr-only"></span>
-                                    </a>
-                                </div>
-
-                                @if ($video->completed != 1)
-                                    <a href="#"
-                                        class="relative flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full group hover:border-gray-400 @if ($key == $index) border-violet-600 @else border-gray-300 @endif"
-                                        aria-current="step">
-                                        <span
-                                            class="h-2.5 w-2.5 rounded-full @if ($key == $index) bg-violet-600 @else bg-transparent group-hover:bg-gray-300 @endif"
-                                            aria-hidden="true"></span>
-                                        <span class="sr-only"></span>
-                                    </a>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ol>
-                </nav>
-                {{-- nav videos alpinejs --}}
                 <nav aria-label="Progress" class="mt-4">
                     <ol role="list" class="flex items-center">
                         <template x-for="(video, key) in videos" :key>
@@ -127,123 +71,113 @@
                                 </template>
                             </li>
                         </template>
+
                     </ol>
                 </nav>
-
-                $count: {{ count(json_decode($videos_json)) }}
-                {{-- videos  --}}
+                {{-- {{ $index }} --}}
                 <div class="mt-6">
-                    @foreach (json_decode($videos_json) as $key => $video)
-                        <div class="w-full h-auto max-w-full video-container" x-ref="videoContainer"
-                            x-on:fullscreenchange="">
-                            <div class="playback-animation" x-ref="playbackAnimation">
-                                <svg class="playback-icons">
-                                    <use href="#play-icon"></use>
-                                    <use href="#pause"></use>
-                                </svg>
-                            </div>
-                            <div>
-                                @if ($key == $index)
-                                    {{ $video->link }}
-                                @endif
-                            </div>
-                            <div>
-                                @if ($key == $index)
-                                    <video controls x-ref="video" preload="metadata" x-on:click="togglePlay($event)"
-                                        x-on:pause="togglePlay($event)" x-on:playing="togglePlay($event)"
-                                        x-on:seeked="skipAhead($event)"
-                                        x-on:timeupdate="updateTimeElapsed(), updatePercentElapsed()">
-                                        <source src="{{ $video->link }}" type="video/mp4">
-                                    </video>
-                                @endif
-                            </div>
-                            <div>
-                                @if ($key == $index)
-                                    {{-- percentage circle  --}}
-                                    <div class="inline-flex items-center justify-center overflow-hidden rounded-full">
-                                        <!-- Building a Progress Ring: https://css-tricks.com/building-progress-ring-quickly/ -->
-                                        <svg class="w-20 h-20">
-                                            <circle class="text-gray-300" stroke-width="5" stroke="currentColor"
-                                                fill="transparent" r="30" cx="40" cy="40" />
-                                            <circle class="text-violet-600" stroke-width="5"
-                                                :stroke-dasharray="circumference"
-                                                :stroke-dashoffset="circumference - percent / 100 * circumference"
-                                                stroke-linecap="round" stroke="currentColor" fill="transparent"
-                                                r="30" cx="40" cy="40" />
-                                        </svg>
-                                        <span class="absolute text-xl text-violet-700"
-                                            x-effect="$el.textContent = Math.trunc((percentElapsed).toFixed(2)*100)+'%'"></span>
-                                    </div>
-                                    <div x-effect="$el.textContent=circumference"></div>
-                                    <div x-effect="$el.textContent=circumference - percent / 100 * circumference">
+                    <template x-for="(video, key) in videos" :key>
+                        <template x-if="key == index">
+                            {{-- <video class="w-full h-auto max-w-full" controls>
+                                <source :src="video.link" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video> --}}
+                            <div class="w-full h-auto max-w-full video-container" x-ref="videoContainer"
+                                x-on:fullscreenchange="">
+                                <div class="playback-animation" x-ref="playbackAnimation">
+                                    <svg class="playback-icons">
+                                        <use href="#play-icon"></use>
+                                        <use href="#pause"></use>
+                                    </svg>
+                                </div>
+
+                                <video controls x-ref="video" preload="metadata" x-on:click="togglePlay($event)"
+                                    x-on:pause="togglePlay($event)" x-on:playing="togglePlay($event)"
+                                    x-on:seeked="skipAhead($event)"
+                                    x-on:timeupdate="updateTimeElapsed(), updatePercentElapsed()">
+                                    <source :src="video.link" type="video/mp4">
+                                </video>
+                                {{-- percentage circle  --}}
+                                <div class="inline-flex items-center justify-center overflow-hidden rounded-full">
+                                    <!-- Building a Progress Ring: https://css-tricks.com/building-progress-ring-quickly/ -->
+                                    <svg class="w-20 h-20">
+                                        <circle class="text-gray-300" stroke-width="5" stroke="currentColor"
+                                            fill="transparent" r="30" cx="40" cy="40" />
+                                        <circle class="text-violet-600" stroke-width="5"
+                                            :stroke-dasharray="circumference"
+                                            :stroke-dashoffset="circumference - percent / 100 * circumference"
+                                            stroke-linecap="round" stroke="currentColor" fill="transparent"
+                                            r="30" cx="40" cy="40" />
+                                    </svg>
+                                    <span class="absolute text-xl text-violet-700"
+                                        x-effect="$el.textContent = Math.trunc((percentElapsed).toFixed(2)*100)+'%'"></span>
+                                </div>
+                                <div x-effect="$el.textContent=circumference"></div>
+                                <div x-effect="$el.textContent=circumference - percent / 100 * circumference"></div>
+
+                                <div x-on:mouseenter="" x-on:mouseleave="" class="hidden video-controls"
+                                    x-ref="videoControls">
+                                    <div class="video-progress">
+                                        <progress x-ref="progressBar" min="0" max="100"
+                                            value="0"></progress>
+                                        <input x-on:input="" x-on:mousemove="" class="seek" x-ref="seek"
+                                            min="0" max="" type="range" step="1"
+                                            value="0">
+                                        <div class="seek-tooltip" id="seekTooltip">00:00</div>
                                     </div>
 
-                                    <div x-on:mouseenter="" x-on:mouseleave="" class="hidden video-controls"
-                                        x-ref="videoControls">
-                                        <div class="video-progress">
-                                            <progress x-ref="progressBar" min="0" max="100"
-                                                value="0"></progress>
-                                            <input x-on:input="" x-on:mousemove="" class="seek" x-ref="seek"
-                                                min="0" max="" type="range" step="1"
-                                                value="0">
-                                            <div class="seek-tooltip" id="seekTooltip">00:00</div>
-                                        </div>
+                                    <div class="bottom-controls">
+                                        <div class="left-controls">
+                                            <button x-ref="play" x-on:click="togglePlay">
+                                                <svg class="playback-icons">
+                                                    <use href="#play-icon"></use>
+                                                    <use href="#pause"></use>
+                                                </svg>
+                                            </button>
 
-                                        <div class="bottom-controls">
-                                            <div class="left-controls">
-                                                <button x-ref="play" x-on:click="togglePlay">
-                                                    <svg class="playback-icons">
-                                                        <use href="#play-icon"></use>
-                                                        <use href="#pause"></use>
+                                            <div class="volume-controls">
+                                                <button x-on:click="" class="volume-button" id="volume-button"
+                                                    x-ref="volumeButton">
+                                                    <svg x-ref="volumeIcons" id="volume-icons">
+                                                        <use x-ref="volumeMute" class="hidden" href="#volume-mute">
+                                                        </use>
+                                                        <use x-ref="volumeLow" class="hidden" href="#volume-low">
+                                                        </use>
+                                                        <use x-ref="volumeHigh" href="#volume-high"></use>
                                                     </svg>
                                                 </button>
 
-                                                <div class="volume-controls">
-                                                    <button x-on:click="" class="volume-button" id="volume-button"
-                                                        x-ref="volumeButton">
-                                                        <svg x-ref="volumeIcons" id="volume-icons">
-                                                            <use x-ref="volumeMute" class="hidden"
-                                                                href="#volume-mute">
-                                                            </use>
-                                                            <use x-ref="volumeLow" class="hidden" href="#volume-low">
-                                                            </use>
-                                                            <use x-ref="volumeHigh" href="#volume-high"></use>
-                                                        </svg>
-                                                    </button>
-
-                                                    <input x-on:input="" class="volume" id="volume"
-                                                        value="1" data-mute="0.5" type="range" max="1"
-                                                        min="0" step="0.01" x-ref="volume">
-                                                </div>
-
-                                                <div class="time">
-                                                    <time x-ref="timeElapsed">00:00</time>
-                                                    <span> / </span>
-                                                    <time x-ref="duration">00:00</time>
-                                                </div>
+                                                <input x-on:input="" class="volume" id="volume" value="1"
+                                                    data-mute="0.5" type="range" max="1" min="0"
+                                                    step="0.01" x-ref="volume">
                                             </div>
 
-                                            <div class="right-controls">
-                                                <button data-title="PIP (p)" class="pip-button" id="pip-button">
-                                                    <svg>
-                                                        <use href="#pip"></use>
-                                                    </svg>
-                                                </button>
-                                                <button x-on:click="" class="fullscreen-button"
-                                                    id="fullscreen-button" x-ref="fullscreenButton">
-                                                    <svg>
-                                                        <use href="#fullscreen"></use>
-                                                        <use href="#fullscreen-exit" class="hidden"></use>
-                                                    </svg>
-                                                </button>
+                                            <div class="time">
+                                                <time x-ref="timeElapsed">00:00</time>
+                                                <span> / </span>
+                                                <time x-ref="duration">00:00</time>
                                             </div>
                                         </div>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
 
-                        {{-- <div class="video-container" id="video-container">
+                                        <div class="right-controls">
+                                            <button data-title="PIP (p)" class="pip-button" id="pip-button">
+                                                <svg>
+                                                    <use href="#pip"></use>
+                                                </svg>
+                                            </button>
+                                            <button x-on:click="" class="fullscreen-button" id="fullscreen-button"
+                                                x-ref="fullscreenButton">
+                                                <svg>
+                                                    <use href="#fullscreen"></use>
+                                                    <use href="#fullscreen-exit" class="hidden"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- <div class="video-container" id="video-container">
                                 <div class="playback-animation" id="playback-animation">
                                     <svg class="playback-icons">
                                         <use class="hidden" href="#play-icon"></use>
@@ -312,23 +246,20 @@
                                     </div>
                                 </div>
                             </div> --}}
-                    @endforeach
+                            </template>
+                    </template>
                 </div>
 
                 <div class="flex justify-between">
-                    <button type="button" wire:click="setCompleted({{ $index }}, {{ $id_attendance }})"
+                    <button x-on:click="setCompleted({{ $index }}, 'completed', 1)"
                         class="px-4 py-3 my-2 text-white bg-green-500 rounded-lg">SET COMPLETATO</button>
-                    <button type="button" wire:click="setUncompleted({{ $index }}, {{ $id_attendance }})"
-                        class="px-4 py-3 my-2 text-white bg-red-500 rounded-lg">SET NON COMPLETATO</button>
+                    <button x-on:click="setUncompleted({{ $index }}, 'completed', 0)"
+                        class="px-4 py-3 my-2 text-white bg-red-500 rounded-lg">SET ZERO</button>
                 </div>
                 <div class="flex justify-between">
-                    <button
-                        type="button"
-                        wire:click="goToPrevious({{ $index }}, {{ $id_attendance }}, {{ $course_id }})"
+                    <button x-on:click="previousVideo"
                         class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">PRECEDENTE</button>
-                    {{-- {{ dd(json_decode($videos_json))[1] }} --}}
-                    <button type="button" wire:click="goToNext({{ $index }}, {{ $id_attendance }}, {{ $course_id }})"
-                        x-show="videos[index]['completed'] && index < count - 1"
+                    <button x-on:click="nextVideo" x-show="videos[index]['completed'] && index < count - 1"
                         class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg"
                         :class="(videos[index]['completed'] && !videos[index + 1]['completed']) ? 'animate-pulse' : ''">SUCCESSIVO</button>
                 </div>
@@ -336,7 +267,6 @@
                     <button class="px-4 py-3 my-2 text-white bg-yellow-600 rounded-lg">VAI AL TEST</button>
                 </div>
                 <br>
-                index: {{ $index }}<br />
                 is playing: <span class="font-bold text-red-600" x-effect="$el.textContent = isPlaying"></span><br />
                 time elapsed: <span class="font-bold text-red-600"
                     x-effect="$el.textContent = timeElapsed"></span><br />
@@ -587,8 +517,7 @@
 
                         if (this.percentElapsed > 0.99) {
                             console.log(this.index, 'completed', 1)
-                            //this.setCompleted(this.index, 'completed', 1)
-                            @this.setCompleted(this.index, this.id_attendance)
+                            this.setCompleted(this.index, 'completed', 1)
                         }
                         return time / videoDuration
                     },

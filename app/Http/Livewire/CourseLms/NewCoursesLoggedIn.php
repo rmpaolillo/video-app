@@ -22,7 +22,7 @@ class NewCoursesLoggedIn extends Component
     public $no_videos;
     public $dateTimeCompleted ='';
     public $completed = false;
-    public $index = false;
+    public $index;
     public $compliancePopup = false;
     public $isPlaying = false;
 
@@ -89,20 +89,41 @@ class NewCoursesLoggedIn extends Component
         // dd($attendances);
     }
 
-    public function goTo($index, $id_attendance, $course_id)
+    public function updated()
     {
-        if ($index < 0) {
-            return;
-        }
-        if ($index > $this->no_videos-1) {
+        dd($this->index);
+    }
+
+    public function goToNext($index, $id_attendance, $course_id)
+    {
+        // dd($index+1);
+        $this->index = $this->index+1;
+        if ($this->index > count(json_decode($this->videos_json))-1) {
+            // dd($this->index);
+            // dd(count(json_decode($this->videos_json))-1);
+            $this->index = $this->index-1;
             return;
         }
         $attendances = Attendance::where('id', $id_attendance)
             ->where('course_id', $course_id)
             ->update([
-                'index' => $index
+                'index' => $this->index
             ]);
-        $this->index = $index;
+    }
+
+    public function goToPrevious($index, $id_attendance, $course_id)
+    {
+        $this->index = $this->index-1;
+        if ($this->index < 0) {
+            // dd($this->index);
+            $this->index = $this->index+1;
+            return;
+        }
+        $attendances = Attendance::where('id', $id_attendance)
+            ->where('course_id', $course_id)
+            ->update([
+                'index' => $this->index
+            ]);
     }
 
     public function setCompleted($index, $id_attendance)
@@ -115,6 +136,7 @@ class NewCoursesLoggedIn extends Component
             'videos' => json_encode($videos_array),
             'index' => $this->index
         ]);
+        $this->emit('refreshComponent');
     }
 
     public function setUncompleted($index, $id_attendance)
@@ -126,6 +148,7 @@ class NewCoursesLoggedIn extends Component
             'videos' => json_encode($videos_array),
             'index' => $this->index
         ]);
+        $this->emit('refreshComponent');
     }
 
     public function closeCompliance()
@@ -136,6 +159,11 @@ class NewCoursesLoggedIn extends Component
     public function openCompliance()
     {
         $this->compliancePopup = true;
+    }
+
+    public function forceReload()
+    {
+        return;
     }
 
     public function render()
