@@ -85,7 +85,7 @@
                 <div class="mt-6">
                     @foreach (json_decode($videos_json) as $key => $video)
                         <div class="w-full h-auto max-w-full video-container" x-ref="videoContainer"
-                            x-on:fullscreenchange="setTimeout(() => toggleFullScreen(), 5000)">
+                            x-on:fullscreenchange="checkFullScreenMode()">
                             <div>
                                 @if ($key == $index)
                                     <video x-ref="video" preload="metadata" x-init="initializeVideo()"
@@ -178,6 +178,8 @@
                         class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">PLAY</button>
                     <button type="button" x-on:click="$refs.video.pause()"
                         class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">PAUSE</button>
+                    <button type="button" x-on:click="toggleFullScreen()"
+                        class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">FULL SCREEN</button>
                 </div>
                 @if ($completed)
                     <div class="flex justify-center">
@@ -533,20 +535,48 @@
                             this.isPlaying = true
                         }
                     },
-                    toggleFullScreen() {
+                    checkFullScreenMode() {
                         if (document.fullscreenElement) {
-                            document.exitFullscreen();
+                            this.fullScreen = true
                         } else if (document.webkitFullscreenElement) {
-                            // Need this to support Safari
-                            document.webkitExitFullscreen();
+                            this.fullScreen = true
                         } else if (this.$refs.videoContainer.webkitRequestFullscreen) {
                             // Need this to support Safari
-                            this.$refs.videoContainer.webkitRequestFullscreen();
+                            this.fullScreen = false
                         } else {
-                            this.$refs.videoContainer.requestFullscreen();
+                            this.fullScreen = false
+                        }
+                    },
+                    toggleFullScreen() {
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen()
+                            this.fullScreen = false
+                        } else if (document.webkitFullscreenElement) {
+                            // Need this to support Safari
+                            document.webkitExitFullscreen()
+                            this.fullScreen = false
+                        } else if (this.$refs.videoContainer.webkitRequestFullscreen) {
+                            // Need this to support Safari
+                            this.$refs.videoContainer.webkitRequestFullscreen()
+                            this.fullScreen = true
+                        } else {
+                            this.$refs.videoContainer.requestFullscreen()
+                            this.fullScreen = true
+                        }
+                    },
+                    exitFullScreen() {
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen()
+                            this.fullScreen = false
+                        } else if (document.webkitFullscreenElement) {
+                            // Need this to support Safari
+                            document.webkitExitFullscreen()
+                            this.fullScreen = false
                         }
                     },
                     skipAhead(event) {
+                        this.exitFullScreen()
+                        this.$refs.video.pause()
                         if (event.type === 'seeked') {
                             if (this.currentTime > this.completedTimeTemp) {
                                 this.$refs.video.pause()
@@ -599,27 +629,18 @@
                         return new Promise(resolve => setTimeout(resolve, ms));
                     },
                     async openCompliancePopup() {
+                        this.exitFullScreen()
                         this.$refs.video.pause()
                         this.timePopup = 60
                         this.compliancePopup = true
-                        await this.sleep(this.timePopup*1000)
-                        if (!this.compliancePopup ) {
+                        await this.sleep(this.timePopup * 1000)
+                        if (!this.compliancePopup) {
                             return;
                         }
                         this.compliancePopup = false;
                         this.timePopup = 0;
                         this.completedTimeTemp = this.previousCheckPoint;
                         this.setCurTime(this.previousCheckPoint)
-                        console.log("afeter 10")
-                        /*
-                        this.timeout = setTimeout(() => {
-                            console.log('go go');
-                            this.compliancePopup = false;
-                            this.timePopup = 0;
-                            this.completedTimeTemp = this.previousCheckPoint;
-                            this.setCurTime(this.previousCheckPoint)
-                        }, this.timePopup * 1000)
-                        */
                     },
                     formatTime(timeInSeconds) {
                         const result = new Date(timeInSeconds * 1000).toISOString().substr(11, 8)
