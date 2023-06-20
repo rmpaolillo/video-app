@@ -18,6 +18,7 @@
         }
     </style>
     @vite(['resources/css/app.css'])
+
     <!-- ==== WOW JS ==== -->
     {{-- <script src="assets/js/wow.min.js"></script> --}}
 

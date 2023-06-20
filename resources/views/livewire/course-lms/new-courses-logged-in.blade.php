@@ -1,5 +1,6 @@
 <div>
-    <div x-data="videos" class="flex items-center justify-center w-full h-auto">
+    <div x-data="videos" x-on:visibilitychange.window="visibilityChange()"
+        class="flex items-center justify-center w-full h-auto">
         <div class="flex items-center justify-center w-full h-auto my-10">
             <div class="w-full max-w-2xl">
                 <h1 class="text-2xl font-bold text-center text-blue-800">
@@ -7,8 +8,6 @@
                 </h1>
                 <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-center text-purple-600">
                     {{ $title }}</h2>
-                {{-- <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-center text-gray-500"
-                    x-text="(videos[{{ $index }}].titolo).toUpperCase()"></h3> --}}
                 @foreach (json_decode($videos_json) as $key => $video)
                     @if ($key == $index)
                         <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-center text-gray-500">
@@ -22,10 +21,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <p class="text-sm text-gray-700">Per rispondere <span class="font-bold">cliccare</span> sul
-                            testo
-                            della
-                            risposta.</p>
+                        <p class="text-sm text-gray-700">I seguenti <span class="font-bold">simboli</span> indicano lo
+                            stato di avanzamento del corso in base ai moduli/video.<br />In basso a sinistra (barra di
+                            progresso in alto su
+                            schermi piccoli) l'indicazione della <span class="font-bold">percentuale completata</span>
+                            del singolo video.</p>
                     </div>
                 </div>
                 {{-- nav videos blade --}}
@@ -36,20 +36,22 @@
                                 <!-- Upcoming Step -->
                                 <div class="absolute inset-0 flex items-center" aria-hidden="true">
                                     <div
-                                        class="h-0.5 w-full @if ($video->completed == 1) bg-violet-600 @else bg-gray-200 @endif">
+                                        class="h-0.5 w-full @if ($video->completato == 1) bg-violet-600 @else bg-gray-200 @endif">
                                     </div>
                                 </div>
                                 <div>
-                                    @if ($video->completed == 1 && $key == $index)
-                                        <a href="#"
+                                    @if ($video->completato == 1 && $key == $index)
+                                        <a href="#" type="button" x-on:notify.window="isClickedGoTo = true"
+                                            wire:click="goTo({{ $key }}, {{ $id_attendance }}, {{ $course_id }})"
                                             class="relative flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full border-violet-600"
                                             aria-current="step">
                                             <span class="h-2.5 w-2.5 rounded-full bg-violet-600"
                                                 aria-hidden="true"></span>
-                                            <span class="sr-only"></span>
+                                            <span class="sr-only">{{ $key + 1 }}</span>
                                         </a>
-                                    @elseif($video->completed == 1 && $key != $index)
-                                        <a href="#"
+                                    @elseif($video->completato == 1 && $key != $index)
+                                        <a href="#" type="button" x-on:notify.window="isClickedGoTo = true"
+                                            wire:click="goTo({{ $key }}, {{ $id_attendance }}, {{ $course_id }})"
                                             class="relative flex items-center justify-center w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-900">
                                             @if ($key != $index)
                                                 <svg class="w-5 h-5 text-white" viewBox="0 0 20 20" fill="currentColor"
@@ -60,261 +62,84 @@
                                                 </svg>
                                             @endif
                                     @endif
-                                    <span class="sr-only"></span>
+                                    <span class="sr-only">{{ $key + 1 }}</span>
                                     </a>
                                 </div>
 
-                                @if ($video->completed != 1)
+                                @if ($video->completato != 1)
                                     <a href="#"
                                         class="relative flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full group hover:border-gray-400 @if ($key == $index) border-violet-600 @else border-gray-300 @endif"
                                         aria-current="step">
                                         <span
                                             class="h-2.5 w-2.5 rounded-full @if ($key == $index) bg-violet-600 @else bg-transparent group-hover:bg-gray-300 @endif"
                                             aria-hidden="true"></span>
-                                        <span class="sr-only"></span>
+                                        <span class="sr-only">{{ $key + 1 }}</span>
                                     </a>
                                 @endif
                             </li>
                         @endforeach
                     </ol>
                 </nav>
-                {{-- nav videos alpinejs --}}
-                <nav aria-label="Progress" class="mt-4">
-                    <ol role="list" class="flex items-center">
-                        <template x-for="(video, key) in videos" :key>
-                            <li class="relative" :class="key == count - 1 ? '' : 'pr-8 sm:pr-20'">
-                                <!-- Upcoming Step -->
-                                <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                                    <div class="h-0.5 w-full"
-                                        :class="video.completed == 1 ? 'bg-violet-600' : 'bg-gray-200'"></div>
-                                </div>
-                                <template x-if="video.completed == 1 && key == index">
-                                    <a href="#"
-                                        class="relative flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full border-violet-600"
-                                        aria-current="step">
-                                        <span class="h-2.5 w-2.5 rounded-full bg-violet-600" aria-hidden="true"></span>
-                                        <span class="sr-only" x-text="key+1"></span>
-                                    </a>
-                                </template>
-                                <template x-if="video.completed == 1 && key != index">
-                                    <a href="#"
-                                        class="relative flex items-center justify-center w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-900"
-                                        {{-- :class="key == index ? 'border-violet-600' : 'border-gray-300'" --}}>
-                                        <template x-if="key != index">
-                                            <svg class="w-5 h-5 text-white" viewBox="0 0 20 20" fill="currentColor"
-                                                aria-hidden="true">
-                                                <path fill-rule="evenodd"
-                                                    d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                        </template>
-                                </template>
-                                <span class="sr-only" x-text="key+1"></span>
-                                </a>
-                                <template x-if="video.completed != 1">
-                                    <a href="#"
-                                        class="relative flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full group hover:border-gray-400"
-                                        {{-- :class="video.completed == 1 ? 'bg-violet-600 hover:bg-violet-900' : ''" --}}
-                                        :class="key == index ? 'border-violet-600' :
-                                            'border-gray-300'"
-                                        aria-current="step">
-                                        <span class="h-2.5 w-2.5 rounded-full"
-                                            :class="key == index ? 'bg-violet-600' :
-                                                'bg-transparent group-hover:bg-gray-300'"
-                                            aria-hidden="true"></span>
-                                        <span class="sr-only" x-text="key+1"></span>
-                                    </a>
-                                </template>
-                            </li>
-                        </template>
-                    </ol>
-                </nav>
-
-                $count: {{ count(json_decode($videos_json)) }}
-                {{-- videos  --}}
+                {{-- end nav videos blade --}}
+                {{-- videos blade --}}
                 <div class="mt-6">
                     @foreach (json_decode($videos_json) as $key => $video)
                         <div class="w-full h-auto max-w-full video-container" x-ref="videoContainer"
-                            x-on:fullscreenchange="">
-                            <div class="playback-animation" x-ref="playbackAnimation">
-                                <svg class="playback-icons">
-                                    <use href="#play-icon"></use>
-                                    <use href="#pause"></use>
-                                </svg>
-                            </div>
+                            x-on:fullscreenchange="setTimeout(() => toggleFullScreen(), 5000)">
                             <div>
                                 @if ($key == $index)
-                                    {{ $video->link }}
-                                @endif
-                            </div>
-                            <div>
-                                @if ($key == $index)
-                                    <video controls x-ref="video" preload="metadata" x-on:click="togglePlay($event)"
-                                        x-on:pause="togglePlay($event)" x-on:playing="togglePlay($event)"
-                                        x-on:seeked="skipAhead($event)"
-                                        x-on:timeupdate="updateTimeElapsed(), updatePercentElapsed()">
+                                    <video x-ref="video" preload="metadata" x-init="initializeVideo()"
+                                        x-on:click="togglePlay($event)" x-on:pause="togglePlay($event)"
+                                        x-on:playing="togglePlay($event)" x-on:seeked="skipAhead($event)"
+                                        x-on:timeupdate="updateTimeElapsed($event), updatePercentElapsed()"
+                                        class="video" x-ref="video" controls controlsList="nodownload"
+                                        poster="{{ asset('poster/poster_logo_mga.png') }}">
                                         <source src="{{ $video->link }}" type="video/mp4">
                                     </video>
                                 @endif
                             </div>
                             <div>
                                 @if ($key == $index)
-                                    {{-- percentage circle  --}}
-                                    <div class="inline-flex items-center justify-center overflow-hidden rounded-full">
-                                        <!-- Building a Progress Ring: https://css-tricks.com/building-progress-ring-quickly/ -->
+                                    {{-- progress top --}}
+                                    <div class="fixed inset-x-0 top-0 z-10 sm:hidden">
+                                        <div class="h-1 bg-violet-500" :style="`width: ${percent}%`"></div>
+                                    </div>
+                                    {{-- end progress top --}}
+                                    {{-- progress circle --}}
+                                    <div
+                                        class="fixed z-50 inline-flex items-center justify-center invisible bg-white rounded-full bottom-5 left-10 sm:visible">
                                         <svg class="w-20 h-20">
                                             <circle class="text-gray-300" stroke-width="5" stroke="currentColor"
                                                 fill="transparent" r="30" cx="40" cy="40" />
-                                            <circle class="text-violet-600" stroke-width="5"
-                                                :stroke-dasharray="circumference"
+                                            <circle x-show="!Number.isNaN(percent)" class="text-violet-600"
+                                                stroke-width="5" :stroke-dasharray="circumference"
                                                 :stroke-dashoffset="circumference - percent / 100 * circumference"
                                                 stroke-linecap="round" stroke="currentColor" fill="transparent"
                                                 r="30" cx="40" cy="40" />
                                         </svg>
-                                        <span class="absolute text-xl text-violet-700"
+                                        <span x-show="Number.isNaN(percent)" class="absolute text-xl text-violet-700"
+                                            x-text="'0%'"></span>
+                                        <span x-show="!Number.isNaN(percent)" class="absolute text-xl text-violet-700"
                                             x-effect="$el.textContent = Math.trunc((percentElapsed).toFixed(2)*100)+'%'"></span>
                                     </div>
-                                    <div x-effect="$el.textContent=circumference"></div>
+                                    {{-- end progress circle --}}
+                                    {{-- <div x-effect="$el.textContent=circumference"></div>
                                     <div x-effect="$el.textContent=circumference - percent / 100 * circumference">
                                     </div>
-
-                                    <div x-on:mouseenter="" x-on:mouseleave="" class="hidden video-controls"
-                                        x-ref="videoControls">
-                                        <div class="video-progress">
-                                            <progress x-ref="progressBar" min="0" max="100"
-                                                value="0"></progress>
-                                            <input x-on:input="" x-on:mousemove="" class="seek" x-ref="seek"
-                                                min="0" max="" type="range" step="1"
-                                                value="0">
-                                            <div class="seek-tooltip" id="seekTooltip">00:00</div>
-                                        </div>
-
-                                        <div class="bottom-controls">
-                                            <div class="left-controls">
-                                                <button x-ref="play" x-on:click="togglePlay">
-                                                    <svg class="playback-icons">
-                                                        <use href="#play-icon"></use>
-                                                        <use href="#pause"></use>
-                                                    </svg>
-                                                </button>
-
-                                                <div class="volume-controls">
-                                                    <button x-on:click="" class="volume-button" id="volume-button"
-                                                        x-ref="volumeButton">
-                                                        <svg x-ref="volumeIcons" id="volume-icons">
-                                                            <use x-ref="volumeMute" class="hidden"
-                                                                href="#volume-mute">
-                                                            </use>
-                                                            <use x-ref="volumeLow" class="hidden" href="#volume-low">
-                                                            </use>
-                                                            <use x-ref="volumeHigh" href="#volume-high"></use>
-                                                        </svg>
-                                                    </button>
-
-                                                    <input x-on:input="" class="volume" id="volume"
-                                                        value="1" data-mute="0.5" type="range" max="1"
-                                                        min="0" step="0.01" x-ref="volume">
-                                                </div>
-
-                                                <div class="time">
-                                                    <time x-ref="timeElapsed">00:00</time>
-                                                    <span> / </span>
-                                                    <time x-ref="duration">00:00</time>
-                                                </div>
-                                            </div>
-
-                                            <div class="right-controls">
-                                                <button data-title="PIP (p)" class="pip-button" id="pip-button">
-                                                    <svg>
-                                                        <use href="#pip"></use>
-                                                    </svg>
-                                                </button>
-                                                <button x-on:click="" class="fullscreen-button"
-                                                    id="fullscreen-button" x-ref="fullscreenButton">
-                                                    <svg>
-                                                        <use href="#fullscreen"></use>
-                                                        <use href="#fullscreen-exit" class="hidden"></use>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div x-show="!Number.isNaN(percent)" x-text="percent"></div>
+                                    <div>tempoCompletato[{{ $key }}]: {{ $video->tempoCompletato }}</div>
+                                    <div>durataVideo[{{ $key }}]: {{ $video->durataVideo }}</div>
+                                    <div>videoCompletato[{{ $index }}]: {{ $video->completato }}</div> --}}
                                 @endif
                             </div>
                         </div>
-
-                        {{-- <div class="video-container" id="video-container">
-                                <div class="playback-animation" id="playback-animation">
-                                    <svg class="playback-icons">
-                                        <use class="hidden" href="#play-icon"></use>
-                                        <use href="#pause"></use>
-                                    </svg>
-                                </div>
-
-                                <video controls class="video" x-ref="video" id="video" preload="metadata"
-                                    poster="poster.jpg">
-                                    <source :src="video.link" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-
-                                <div class="hidden video-controls" x-ref="video-controls" id="video-controls">
-                                    <div class="video-progress">
-                                        <progress id="progress-bar" value="0" min="0"></progress>
-                                        <input class="seek" id="seek" value="0" min="0"
-                                            type="range" step="1">
-                                        <div class="seek-tooltip" id="seek-tooltip">00:00</div>
-                                    </div>
-
-                                    <div class="bottom-controls">
-                                        <div class="left-controls">
-                                            <button data-title="Play (k)" id="play">
-                                                <svg class="playback-icons">
-                                                    <use href="#play-icon"></use>
-                                                    <use class="hidden" href="#pause"></use>
-                                                </svg>
-                                            </button>
-
-                                            <div class="volume-controls">
-                                                <button data-title="Mute (m)" class="volume-button"
-                                                    id="volume-button">
-                                                    <svg>
-                                                        <use class="hidden" href="#volume-mute"></use>
-                                                        <use class="hidden" href="#volume-low"></use>
-                                                        <use href="#volume-high"></use>
-                                                    </svg>
-                                                </button>
-
-                                                <input class="volume" id="volume" value="1" data-mute="0.5"
-                                                    type="range" max="1" min="0" step="0.01">
-                                            </div>
-
-                                            <div class="time">
-                                                <time id="time-elapsed">00:00</time>
-                                                <span> / </span>
-                                                <time id="duration">00:00</time>
-                                            </div>
-                                        </div>
-
-                                        <div class="right-controls">
-                                            <button data-title="PIP (p)" class="pip-button" id="pip-button">
-                                                <svg>
-                                                    <use href="#pip"></use>
-                                                </svg>
-                                            </button>
-                                            <button data-title="Full screen (f)" class="fullscreen-button"
-                                                id="fullscreen-button">
-                                                <svg>
-                                                    <use href="#fullscreen"></use>
-                                                    <use href="#fullscreen-exit" class="hidden"></use>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> --}}
                     @endforeach
                 </div>
+                {{-- end video  --}}
 
+                {{-- $count: {{ count(json_decode($videos_json)) }}
+                <br>
+                $index: {{ $index }} --}}
                 <div class="flex justify-between">
                     <button type="button" wire:click="setCompleted({{ $index }}, {{ $id_attendance }})"
                         class="px-4 py-3 my-2 text-white bg-green-500 rounded-lg">SET COMPLETATO</button>
@@ -322,39 +147,75 @@
                         class="px-4 py-3 my-2 text-white bg-red-500 rounded-lg">SET NON COMPLETATO</button>
                 </div>
                 <div class="flex justify-between">
-                    <button
-                        type="button"
+                    <button type="button"
                         wire:click="goToPrevious({{ $index }}, {{ $id_attendance }}, {{ $course_id }})"
+                        x-on:notify.window="isClickedGoTo = true" x-on:click="isPlaying = false"
                         class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">PRECEDENTE</button>
-                    {{-- {{ dd(json_decode($videos_json))[1] }} --}}
-                    <button type="button" wire:click="goToNext({{ $index }}, {{ $id_attendance }}, {{ $course_id }})"
-                        x-show="videos[index]['completed'] && index < count - 1"
-                        class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg"
-                        :class="(videos[index]['completed'] && !videos[index + 1]['completed']) ? 'animate-pulse' : ''">SUCCESSIVO</button>
+                    {{-- next button blade  --}}
+                    <div>
+                        @if (json_decode($videos_json)[$index]->completato && $index < count(json_decode($videos_json)) - 1)
+                            <button type="button"
+                                wire:click="goToNext({{ $index }}, {{ $id_attendance }}, {{ $course_id }}), updateTempVariable"
+                                x-on:notify.window="isClickedGoTo = true" x-on:click="isPlaying = false"
+                                class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg @if (json_decode($videos_json)[$index]->completato && !json_decode($videos_json)[$index + 1]->completato) animate-pulse @endif">SUCCESSIVO</button>
+                        @endif
+                    </div>
+
+                    {{-- next button blade  --}}
                 </div>
-                <div class="flex justify-center" x-show="completed == 1">
-                    <button class="px-4 py-3 my-2 text-white bg-yellow-600 rounded-lg">VAI AL TEST</button>
+                <div class="flex justify-between">
+                    <button type="button" x-on:click="compliancePopup=true; openCompliancePopup();"
+                        class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">COMPLIANCE POPUP</button>
+
+                    index: <div x-text="index"></div>
+
+                    <div x-text="JSON.stringify(checkPoints)"></div>
+                    <button type="button" x-on:click="setCurTime(previousCheckPoint)"
+                        class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">TORNA INDIETRO</button>
                 </div>
-                <br>
+                <div class="flex justify-between">
+                    <button type="button" x-on:click="$refs.video.play()"
+                        class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">PLAY</button>
+                    <button type="button" x-on:click="$refs.video.pause()"
+                        class="px-4 py-3 my-2 text-white bg-gray-500 rounded-lg">PAUSE</button>
+                </div>
+                @if ($completed)
+                    <div class="flex justify-center">
+                        <button class="px-4 py-3 my-2 text-white bg-yellow-600 rounded-lg">VAI AL TEST FINALE</button>
+                    </div>
+                @endif
+                <br />
+                {{-- <div>completedTimeTemp[{{ $index }}]: <span x-ref="elapsed" class="font-bold text-red-600"
+                        x-effect="$el.textContent = completedTimeTemp"></span></div>
                 index: {{ $index }}<br />
                 is playing: <span class="font-bold text-red-600" x-effect="$el.textContent = isPlaying"></span><br />
-                time elapsed: <span class="font-bold text-red-600"
+                time elapsed: <span x-ref="elapsed" class="font-bold text-red-600"
                     x-effect="$el.textContent = timeElapsed"></span><br />
-                time completed: <span class="font-bold text-red-600"
+                time completed byref: <span class="font-bold text-red-600"
                     x-effect="$el.textContent = completedTime"></span><br />
-                initialize video: <span class="font-bold text-red-600"
-                    x-effect="$el.textContent = initializeVideo()"></span><br />
                 percent elapsed: <span class="font-bold text-red-600"
                     x-effect="$el.textContent = Math.trunc((percentElapsed).toFixed(2)*100)+'%'"></span><br />
                 current time: <span class="font-bold text-red-600"
                     x-effect="$el.textContent = currentTime"></span><br />
                 seek: <span class="font-bold text-red-600" x-effect="$el.textContent = seek"></span><br />
-                progress bar: <span class="font-bold text-red-600" x-effect="$el.textContent = progressBar"></span>
+                progress bar: <span class="font-bold text-red-600"
+                    x-effect="$el.textContent = progressBar"></span><br>
+                videoDuration[{{ $index }}]: <span
+                    class="font-bold text-red-600">{{ json_decode($videos_json)[$index]->durataVideo }}</span><br />
+                tempoCompletato[{{ $index }}]: <span
+                    class="font-bold text-red-600">{{ json_decode($videos_json)[$index]->tempoCompletato }}</span><br>
+                <div x-text="index"></div>
+                <div x-text="id_attendance"></div>
+                <div x-text="currentTime"></div> --}}
+                {{-- <div wire:model="logs_json">
+                    {{ $logs_json }}
+                </div> --}}
             </div>
         </div>
+
         {{-- start modal  --}}
-        {{-- <template x-if="compliancePopup"> --}}
-        @if ($compliancePopup)
+        <div x-cloak x-show="compliancePopup" x-init="">
+            {{-- @if ($compliancePopup) --}}
             <div class="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                 <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"></div>
                 <div class="fixed inset-0 z-10 overflow-y-auto">
@@ -375,6 +236,10 @@
                                         Controllo
                                         Conformità Frequenza Corso</h3>
                                     <div class="mt-2 space-y-2">
+                                        <p class="text-sm text-gray-500">Clicca sul tasto "Prosegui" <span
+                                                class="font-bold">entro 60 secondi
+                                            </span> per non perdere i progressi fatti in questo modulo.
+                                        </p>
                                         <p class="text-sm text-gray-500">Stai vedendo questo "pop-up" ai fini della
                                             "compliance" che gli ordini professionali impongono per l'attestazione della
                                             frequenza a distanza dei corsi in modalità asincrona/P.O.D. (Play On Demand)
@@ -388,20 +253,136 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-                                <button x-on:click="closeCompliacePopup()" type="button"
-                                    class="inline-flex justify-center w-full px-3 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2">Ok
-                                    Prosegui </button>
-                                <button x-on:click="closeCompliacePopup()" type="button"
-                                    class="inline-flex justify-center w-full px-3 py-2 mt-3 text-sm font-semibold text-gray-900 bg-white rounded-md shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0">Cancella</button>
+                            <div class="mt-5 sm:mt-6 ">
+                                <button x-on:click="closeCompliancePopup; $dispatch('accept')"
+                                    x-on:accept.window="openCompliancePopup" type="button"
+                                    class="inline-flex justify-center w-full px-3 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2">Prosegui</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            </template>
-        @endif
+            {{-- @endif --}}
+        </div>
         {{-- end modal  --}}
+
+        {{-- wire loading --}}
+        <div wire:loading wire:target="goTo, goToNext, goToPrevious, setCompleted, setUncompleted"
+            class="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"></div>
+
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+                <div class="flex items-end justify-center min-h-full p-4 text-center sm:items-center sm:p-0">
+
+                    <div
+                        class="relative px-4 pt-5 pb-4 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+                        <div>
+                            <div class="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full">
+                                <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-5">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Attendere
+                                    prego</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- end wire loading --}}
+
+        {{-- modal skipAhead --}}
+        <div x-cloak x-show="alertSkipAhead" class="relative z-10" aria-labelledby="modal-title" role="dialog"
+            aria-modal="true">
+            <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"></div>
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+                <div class="flex items-end justify-center min-h-full p-4 text-center sm:items-center sm:p-0">
+                    <div
+                        class="relative px-4 pt-5 pb-4 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                        <div class="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
+                            <button x-on:click="alertSkipAhead = false" type="button"
+                                class="text-gray-400 bg-white rounded-md hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <span class="sr-only">Close</span>
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="sm:flex sm:items-start">
+                            <div
+                                class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-red-100 rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">
+                                    Attenzione</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500">Non si può andare avanti e/o oltre la porzione di
+                                        video che hai visualizzato.</p>
+                                    <p class="text-sm text-gray-500">Questa operazione verrà registrata sui nostri
+                                        sistemi.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                            <button x-on:click="alertSkipAhead = false, appendLogs('ha cercato di andare avanti')"
+                                type="button"
+                                class="inline-flex justify-center w-full px-3 py-2 text-sm font-semibold text-white bg-red-600 rounded-md shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Chiudi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- emd modal --}}
+
+        {{-- modal shkipBehind --}}
+        <div x-cloak x-show="alertSkipBehind" class="relative z-10" aria-labelledby="modal-title" role="dialog"
+            aria-modal="true">
+            <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"></div>
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+                <div class="flex items-end justify-center min-h-full p-4 text-center sm:items-center sm:p-0">
+                    <div
+                        class="relative px-4 pt-5 pb-4 overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                        <div class="sm:flex sm:items-start">
+                            <div
+                                class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-red-100 rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">
+                                    Sei sicuro di voler andare indietro?</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500">
+                                        Andando indietro perderai i progressi fatti. Solo quando avrai terminato
+                                        l'intero video/modulo potrai andare avanti e/o indietro liberamente.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                            <button x-on:click="alertSkipBehind = false" type="button"
+                                class="inline-flex justify-center w-full px-3 py-2 text-sm font-semibold text-white bg-red-600 rounded-md shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Procedo
+                                Comunque</button>
+                            <button x-on:click="alertSkipBehind = false, setCurTime(completedTimeTemp)" type="button"
+                                class="inline-flex justify-center w-full px-3 py-2 mt-3 text-sm font-semibold text-gray-900 bg-white rounded-md shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancella
+                                Azione</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- end modal skipBehind --}}
     </div>
     <script>
         document.addEventListener('alpine:init', () => {
@@ -416,141 +397,135 @@
                 window.localStorage.removeItem('_x_dateTimeCompleted')
                 window.localStorage.removeItem('_x_count')
                 window.localStorage.removeItem('_x_compliancePopup')
-                window.setInterval(() => {
-                    test = false;
-                    if (test) {
-                        let istante = new Date()
-                        window.localStorage.setItem('_x_compliancePopup', true)
-                        @this.openCompliance()
-                        console.log(istante)
-                    } else {
-                        return
-                    }
-                }, Math.round(Math.random() * (20000 - 5000)) + 5000)
+                window.localStorage.removeItem('_x_fullScreen')
+                window.localStorage.removeItem('_x_timePopup')
+                window.localStorage.removeItem('_x_checkPoints')
                 return {
-                    id_attendance: this.$persist({{ $id_attendance }}),
-                    codice: this.$persist('{{ $codice }}'),
-                    course_id: this.$persist({{ $course_id }}),
-                    course_uuid: this.$persist('{{ $course_uuid }}'),
-                    index: this.$persist({{ $index }}),
-                    videos: this.$persist(<?php echo $videos_json; ?>),
-                    completed: this.$persist({{ $completed }}),
-                    dateTimeCompleted: this.$persist(<?php echo $dateTimeCompleted; ?>),
+                    videoWorks: !!document.createElement('video').canPlayType,
+                    id_attendance: @entangle('id_attendance'),
+                    codice: @entangle('codice'),
+                    course_id: @entangle('course_id'),
+                    course_uuid: @entangle('course_uuid'),
+                    index: @entangle('index'),
+                    videos: @entangle('videos_json'),
+                    dateTimeCompleted: @entangle('dateTimeCompleted'),
                     count: this.$persist({{ count(json_decode($videos_json)) }}),
-                    compliancePopup: this.$persist({{ $compliancePopup }}),
+                    compliancePopup: this.$persist(false),
+                    timePopup: this.$persist(60),
+                    timeout: null,
+                    checkPoints: this.$persist([]),
+                    currentCheckPoint: this.$persist(0),
+                    currentCheckPointKey: this.$persist(0),
+                    previousCheckPoint: this.$persist(0),
+                    isClickedGoTo: false,
                     isPlaying: false,
-                    videoDuration: null,
-                    timeElapsed: null,
-                    currentTime: 0,
+                    videoDuration: 0,
+                    completedTime: 0,
+                    videoDurationTemp: 0,
+                    completedTimeTemp: this.$persist(0),
+                    timeElapsed: 0,
+                    currentTime: this.$persist(0),
                     percentElapsed: 0,
                     seek: 0,
                     progressBar: 0,
-                    completedTime: Alpine.$persist(5).as('completed'),
+                    fullScreen: this.$persist('false'),
+                    completed: @entangle('completed'),
                     circumference: 30 * 2 * Math.PI,
                     percent: 0,
-                    answered(e) {
-                        this.selectedAnswer = e.target.value
-                        this.questions[this.index]['givenAnswer'] = this.selectedAnswer
-                        if (this.questions[this.index]['givenAnswer'] == this.questions[this.index][
-                                'correctAnswer'
-                            ]) {
-                            this.questions[this.index]['point'] = 1
+                    alertSkipAhead: false,
+                    alertSkipBehind: false,
+                    visibilityChange() {
+                        if ((document.visibilityState !== "visible") && (this.completed == 0)) {
+                            this.$refs.video.pause()
+                            this.isPlaying = false
                         } else {
-                            this.questions[this.index]['point'] = 0
+                            //this.$refs.video.play()
+                            //this.isPlaying = true
                         }
-                    },
-                    nextVideo() {
-                        if (this.isPlaying = true) {
-                            this.isPlaying = false
-                        }
-                        this.currentTime = 0
-                        this.index++
-                        if (this.index > this.count - 1) {
-                            this.index = this.count - 1
-                            this.nextVisible = 0
-                        }
-                        @this.update(this.id_attendance, this.codice, this.course_id, this.course_uuid, this
-                            .index, this.videos, this.completed, this.dateTimeCompleted)
-                        location.reload()
-                    },
-                    previousVideo() {
-                        if (this.isPlaying = true) {
-                            this.isPlaying = false
-                        }
-                        this.currentTime = 0
-                        this.index--
-                        if (this.index < 0) {
-                            this.index = 0
-                        }
-                        @this.update(this.id_attendance, this.codice, this.course_id, this.course_uuid, this
-                            .index, this.videos, this.completed, this.dateTimeCompleted)
-                        location.reload()
-                    },
-                    setCompleted(index, prop, value) {
-                        if (index == this.count - 1) {
-                            this.completed = 1
-                        }
-                        this.videos[index][prop] = value
-                        @this.update(this.id_attendance, this.codice, this.course_id, this.course_uuid, this
-                            .index, this.videos, this.completed, this.dateTimeCompleted)
                     },
                     setUncompleted(index, prop, value) {
                         if (index == this.count - 1) {
                             this.completed = 0
                         }
                         this.videos[index][prop] = value
-                        @this.update(this.id_attendance, this.codice, this.course_id, this.course_uuid, this
+                        @this.update(this.id_attendance, this.codice, this.course_id, this
+                            .course_uuid, this
                             .index, this.videos, this.completed, this.dateTimeCompleted)
                     },
-                    closeCompliacePopup() {
+                    setTrue() {
+                        this.checkPoints[this.currentCheckPointKey]['checkPassed'] = true
+                        console.log(this.checkPoints[this.currentCheckPointKey]['checkPassed'])
+                        this.initializeThisCheckPoints()
+                        //JSON.parse(this.videos)[this.index]['checkPoints'][this.currentCheckPointKey]['checkPassed'] = true
+                        //console.log(JSON.parse(this.videos)[this.index]['checkPoints'][this.currentCheckPointKey])
+                        //this.initializeCheckPoints()
+                    },
+                    closeCompliancePopup() {
+                        this.checkPoints[this.currentCheckPointKey]['checkPassed'] = true
+                        JSON.parse(this.videos)[this.index]['checkPoints'][this.currentCheckPointKey][
+                            'checkPassed'
+                        ] = true
+                        @this.closeCompliance(this.currentCheckPointKey, this.id_attendance)
+                        @this.appendLogs(this.index, this.id_attendance, this.currentTime,
+                            `ckeckpoint no. ${this.currentCheckPointKey} superato`)
+                        this.initializeThisCheckPoints()
                         this.compliancePopup = false
-                        @this.closeCompliance()
+                        this.$refs.video.play()
                     },
-                    showResults() {
-                        this.submitted = true
-                        this.dateTimeSubmitted = new Date().toLocaleString()
-
-                        this.totalScore = this.questions.reduce(function(previousValue, currentValue) {
-                            return previousValue + currentValue.point
-                        }, 0)
-
-                        this.blank = this.questions.filter(function(options) {
-                            return options.givenAnswer === ''
-                        }).length
-
-                        this.wrongAnswers = this.questions.filter(function(options) {
-                            if (options.givenAnswer != '') {
-                                return options.givenAnswer != options.correctAnswer
-                            }
-                        }).length
+                    async getVideoDuration() {
+                        let response = await this.$refs.video.duration
+                        return await response
                     },
-                    updateResults() {
-                        if (!this.submitted) {
-                            this.dateTimeSubmitted = new Date().toLocaleString()
-
-                            this.totalScore = this.questions.reduce(function(previousValue, currentValue) {
-                                return previousValue + currentValue.point
-                            }, 0)
-
-                            this.blank = this.questions.filter(function(options) {
-                                return options.givenAnswer === ''
-                            }).length
-
-                            this.wrongAnswers = this.questions.filter(function(options) {
-                                if (options.givenAnswer != '') {
-                                    return options.givenAnswer != options.correctAnswer
-                                }
-                            }).length
+                    initializeVideo() {
+                        if ((JSON.parse(this.videos)[this.index]['completato'])) {
+                            return
                         }
+                        (JSON.parse(this.videos)).forEach((detail, index) => {
+                            if (this.index == index) {
+                                this.videoDurationTemp = detail.durataVideo
+                                this.completedTimeTemp = detail.tempoCompletato
+                                this.setCurTime(this.completedTimeTemp)
+                                this.initializeCheckPoints()
+                            }
+                        })
                     },
-                    resetQuiz() {
-                        this.index = 0
-                        this.review = true
+                    initializeCheckPoints() {
+                        this.checkPoints = JSON.parse(this.videos)[this.index]['checkPoints'];
+                        Object.keys(this.checkPoints).forEach(key => {
+                            if (key > 0 && this.checkPoints[key - 1]['checkPassed'] && !this
+                                .checkPoints[key]['checkPassed']) {
+                                console.log(key - 1, 'previous checkpoint', this.checkPoints[key -
+                                    1]['checkTime']);
+                                this.previousCheckPoint = this.checkPoints[key - 1]['checkTime']
+                                console.log(key, 'current checkpoint', this.checkPoints[key][
+                                    'checkTime'
+                                ]);
+                                this.currentCheckPoint = this.checkPoints[key]['checkTime']
+                                this.currentCheckPointKey = key
+                            }
+                        })
                     },
-                    initializeVideo() {},
+                    initializeThisCheckPoints() {
+                        Object.keys(this.checkPoints).forEach(key => {
+                            if (key > 0 && this.checkPoints[key - 1]['checkPassed'] && !this
+                                .checkPoints[key]['checkPassed']) {
+                                console.log(key - 1, 'previous checkpoint', this.checkPoints[key -
+                                    1]['checkTime']);
+                                this.previousCheckPoint = this.checkPoints[key - 1]['checkTime']
+                                console.log(key, 'current checkpoint', this.checkPoints[key][
+                                    'checkTime'
+                                ]);
+                                this.currentCheckPoint = this.checkPoints[key]['checkTime']
+                                this.currentCheckPointKey = key
+                            }
+                        })
+                    },
                     formatTime(timeInSeconds) {},
                     togglePlay(event) {
                         if (event.type === "pause") {
+                            if (this.currentTime > this.completedTimeTemp) {
+                                this.completedTimeTemp = this.currentTime
+                            }
                             console.log("paused");
                             this.isPlaying = false
                         } else if (event.type === "playing") {
@@ -558,19 +533,93 @@
                             this.isPlaying = true
                         }
                     },
-                    skipAhead(event) {
-                        console.log(this.$refs.video.currentTime)
+                    toggleFullScreen() {
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                        } else if (document.webkitFullscreenElement) {
+                            // Need this to support Safari
+                            document.webkitExitFullscreen();
+                        } else if (this.$refs.videoContainer.webkitRequestFullscreen) {
+                            // Need this to support Safari
+                            this.$refs.videoContainer.webkitRequestFullscreen();
+                        } else {
+                            this.$refs.videoContainer.requestFullscreen();
+                        }
                     },
+                    skipAhead(event) {
+                        if (event.type === 'seeked') {
+                            if (this.currentTime > this.completedTimeTemp) {
+                                this.$refs.video.pause()
+                                //alert('OPERAZIONE NON CONSENTITA');
+                                this.setCurTime(this.completedTimeTemp)
+                                console.log(this.completedTimeTemp)
+                                this.alertSkipAhead = true
+                            } else if (this.currentTime < this.completedTimeTemp) {
+                                this.$refs.video.pause()
+                                //alert('OPERAIZONE NON CONSENTITA');
+                                this.alertSkipBehind = true
+                            }
+                        }
+                    },
+                    setCurTime(arg) {
+                        this.currentTime = arg
+                        this.completedTimeTemp = this.previousCheckPoint
+                        this.$refs.video.currentTime = this.currentTime
+                    },
+                    updateTempVariable() {},
                     updateTimeElapsed() {
+                        if ((JSON.parse(this.videos)[this.index]['completato'])) {
+                            return
+                        }
                         const time = this.formatTime(Math.round(this.$refs.video.currentTime))
                         this.currentTime = this.$refs.video.currentTime
+                        if (!this.isClickedGoTo) {
+                            @this.updateCompletedTime(this.index, this.id_attendance, this
+                                .currentTime)
+                        }
                         if (this.$refs.video.currentTime > this.completedTime) {
                             this.completedTime = this.$refs.video.currentTime
                         }
-                        this.$refs.timeElapsed.innerText = `${time.minutes}:${time.seconds}`
-                        this.$refs.timeElapsed.setAttribute('datetime', `${time.minutes}m ${time.seconds}s`)
-                        this.timeElapsed = `${time.minutes}:${time.seconds}`
+
+                        if (this.$refs.video.currentTime > this.currentCheckPoint) {
+                            this.$refs.video.pause()
+                            //this.timePopup= 60
+                            //@this.openCompliance()
+                            this.openCompliancePopup()
+                            console.log(this.compliancePopUp)
+                        }
+                        //this.$refs.timeElapsed.innerText = `${time.minutes}:${time.seconds}`
+                        //this.$refs.timeElapsed.setAttribute('datetime',`${time.minutes}m ${time.seconds}s`)
+                        //this.timeElapsed = `${time.minutes}:${time.seconds}`
+
+                        this.isClickedGoTo = false
                         // return `${time.minutes}:${time.seconds}`
+                    },
+                    sleep(ms) {
+                        return new Promise(resolve => setTimeout(resolve, ms));
+                    },
+                    async openCompliancePopup() {
+                        this.$refs.video.pause()
+                        this.timePopup = 60
+                        this.compliancePopup = true
+                        await this.sleep(this.timePopup*1000)
+                        if (!this.compliancePopup ) {
+                            return;
+                        }
+                        this.compliancePopup = false;
+                        this.timePopup = 0;
+                        this.completedTimeTemp = this.previousCheckPoint;
+                        this.setCurTime(this.previousCheckPoint)
+                        console.log("afeter 10")
+                        /*
+                        this.timeout = setTimeout(() => {
+                            console.log('go go');
+                            this.compliancePopup = false;
+                            this.timePopup = 0;
+                            this.completedTimeTemp = this.previousCheckPoint;
+                            this.setCurTime(this.previousCheckPoint)
+                        }, this.timePopup * 1000)
+                        */
                     },
                     formatTime(timeInSeconds) {
                         const result = new Date(timeInSeconds * 1000).toISOString().substr(11, 8)
@@ -584,14 +633,27 @@
                         const time = Math.round(this.$refs.video.currentTime)
                         this.percentElapsed = time / videoDuration
                         this.percent = Math.trunc((this.percentElapsed).toFixed(2) * 100)
-
-                        if (this.percentElapsed > 0.99) {
-                            console.log(this.index, 'completed', 1)
-                            //this.setCompleted(this.index, 'completed', 1)
+                        if (this.percentElapsed >= 1 && (!JSON.parse(this.videos)[this.index][
+                                'completato'
+                            ])) {
                             @this.setCompleted(this.index, this.id_attendance)
+                            @this.appendLogs(this.index, this.id_attendance, this.currentTime,
+                                'modulo completato')
                         }
                         return time / videoDuration
                     },
+                    hideControls() {
+                        if (this.$refs.video.paused) {
+                            return
+                        }
+                        this.$refs.videoControls.classList.add('hide')
+                    },
+                    showControls() {
+                        this.$refs.videoControls.classList.remove('hide')
+                    },
+                    appendLogs(annotation) {
+                        @this.appendLogs(this.index, this.id_attendance, this.currentTime, annotation)
+                    }
                 }
             })
         })

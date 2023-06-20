@@ -17,7 +17,8 @@
                         'course_link_video' => $course_link_video,
                         'course_link_youtube' => $course_link_youtube,
                         'course_link_dispense' => $course_link_dispense,
-                        'codice' => $codice
+                        'codice' => $codice,
+                        'ipAddress' => $ipAddress
                     ])
 
                     {{-- <livewire:course-lms.new-courses-logged-in > --}}
